@@ -54,11 +54,25 @@ app.all('/', function(req, res) {
 });
 
 app.all('/search', function(req, res){
+  console.log(req.url);
+  console.log(req.body);
+
+  /*
+  search request:
+  /search
+  { target: 'select metric', refId: 'B' }
+
+  response:
+  ["upper_25","upper_50","upper_75","upper_90","upper_95"]
+
+  */
+
   var result = [];
   _.each(timeserie, function(ts) {
     result.push(ts.target);
   });
 
+  console.log(JSON.stringify(result));
   res.send(JSON.stringify(result));
   res.end();
 });
@@ -74,6 +88,28 @@ app.all('/annotations', function(req, res) {
 app.all('/query', function(req, res){
   console.log(req.url);
   console.log(req.body);
+
+  /*
+  query input looks like
+  /query
+{ panelId: 1,
+  range:
+   { from: '2016-08-13T00:17:13.820Z',
+     to: '2016-08-13T12:17:13.824Z' },
+  rangeRaw:
+   { from: '2016-08-13T00:17:13.820Z',
+     to: '2016-08-13T12:17:13.824Z' },
+  interval: '30s',
+  targets:
+   [ { target: 'upper_25', refId: 'A' },
+     { target: 'upper_50', refId: 'B' },
+     { target: 'upper_75', refId: 'C' },
+     { target: 'upper_90', refId: 'D' },
+     { target: 'upper_95', refId: 'E' } ],
+  format: 'json',
+  maxDataPoints: 1400 }
+
+  */
 
   var tsResult = [];
 
