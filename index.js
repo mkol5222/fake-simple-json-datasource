@@ -3,6 +3,11 @@ var bodyParser = require('body-parser');
 var _ = require('lodash');
 var app = express();
 
+var moment = require('moment');
+
+import db from 'sqlite';
+//var db = require('sqlite'); 
+
 app.use(bodyParser.json());
 
 var timeserie = [
@@ -111,9 +116,28 @@ app.all('/query', function(req, res){
 
   */
 
+  // our range
+  var ts1 = req.body.range.from;
+  var ts2 = req.body.range.to;
+  console.log("query data from " + moment(ts1).unix() + " to " + moment(ts2).unix());
+  // used 1468420981 (sec)
+  //      1471092060
+  // ret  1471092058235 (ms)
+  
+  // for targets
+  var qtargets = [];
+  _.each(req.body.targets, function(target) {
+    qtargets.push(target.target);
+  });
+  console.log("query for targets " + qtargets);
+
+
   var tsResult = [];
 
+  // for each target like { target: 'upper_25', refId: 'A' }
+  //  where target.target is upper_25
   _.each(req.body.targets, function(target) {
+    // filter timeserie that has array of items { target: "something", datapoints: [[val1, ts1], [val2, ts2], ...]}
     var k = _.filter(timeserie, function(t) {
       return t.target === target.target;
     });
@@ -123,10 +147,36 @@ app.all('/query', function(req, res){
     });
   });
 
+  // response is array of items { target: "something", datapoints: [[val1, ts1], [val2, ts2], ...]}
+  console.log("\nSTART of /query response");
+  //console.log(JSON.stringify(tsResult));
+  console.log("END of /query response\n");
+  
   res.send(JSON.stringify(tsResult));
   res.end();
 });
 
 app.listen(3333);
 
-console.log("Server is listening");
+console.log("testing database");
+
+/*
+var sqlite3 = require('sqlite3').verbose();
+var db = new sqlite3.Database('CPViewDB.dat');
+
+db.serialize(function() { 
+  db.each("SELECT * FROM UM_STAT_UM_MEMORY LIMIT 5", function(err, row) {
+      console.log(row);
+  });
+});
+
+console.log("closing database");
+db.close();
+*/
+
+Promise.resolve()
+  .then(() => db.open('CPViewDB.dat', { Promise }))
+  .catch((err) => console.error(err.stack))
+  .finally(() => console.log("done with db"));
+
+console.log("Server is listening on 3333");
